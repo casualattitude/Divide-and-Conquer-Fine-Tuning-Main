@@ -1,0 +1,81 @@
+training_modifiers:
+
+  - !EpochRangeModifier
+    start_epoch: 0
+    end_epoch: 300
+
+  - !LearningRateFunctionModifier
+    start_epoch: 0
+    end_epoch: 300
+    lr_func: linear
+    init_lr: 0.0005
+    final_lr: 0.00001
+    cycle_epochs: 20
+    cycle_mul: 1.0
+
+pruning_modifiers:
+
+  - !CAPruningModifier
+    params: ['re:.*(conv1 |layer\d.\d.(conv\d|downsample.0)).weight']
+    init_sparsity: 0.4
+    final_sparsity: 0.6
+    start_epoch: 0
+    end_epoch: 40
+    update_frequency: 20
+    inter_func: linear
+    #用于指定插值函数的类型，这个函数的作用是在修剪过程中对剪枝率进行插值，以实现平滑的剪枝操作
+    mask_type: unstructured
+    global_sparsity: True
+    num_grads: 4096
+    #模型的训练数据加载器配置是在训练代码中定义的，但是修剪器可能需要在不同的环境中进行梯度采样，因此可能需要不同的配置
+    fisher_block_size: 256
+    #通常情况下，Fisher 矩阵是非常大的。将其分解成块状结构可以降低计算量，提高计算效率。这意味着 Fisher 矩阵会被分成块，每个块大小为 50x50
+    damp: 1.0e-8
+    #（阻尼）用于减缓参数更新的速度，
+    num_recomputations: 1
+    #为了更准确地估计 Fisher 信息矩阵，需要多次重新计算。重新计算 Fisher 矩阵可以提高其估计的准确性
+
+  - !CAPruningModifier
+    params: ['re:.*(conv1 |layer\d.\d.(conv\d|downsample.0)).weight']
+    init_sparsity: 0.6
+    final_sparsity: 0.75
+    start_epoch: 40
+    end_epoch: 100
+    update_frequency: 20
+    inter_func: linear
+    mask_type: unstructured
+    global_sparsity: True
+    num_grads: 4096
+    fisher_block_size: 256
+    damp: 1.0e-8
+    num_recomputations: 1
+
+  - !CAPruningModifier
+    params: ['re:.*(conv1 |layer\d.\d.(conv\d|downsample.0)).weight']
+    init_sparsity: 0.75
+    final_sparsity: 0.9
+    start_epoch: 100
+    end_epoch: 280
+    update_frequency: 20
+    inter_func: linear
+    mask_type: unstructured
+    global_sparsity: True
+    num_grads: 4096
+    fisher_block_size: 256
+    damp: 1.0e-8
+    num_recomputations: 1
+
+  - !CAPruningModifier
+    params: ['re:.*(conv1 |layer\d.\d.(conv\d|downsample.0)).weight']
+    init_sparsity: 0.9
+    final_sparsity: 0.9
+    start_epoch: 280
+    end_epoch: 300
+    update_frequency: 20
+    inter_func: linear
+    mask_type: unstructured
+    global_sparsity: True
+    num_grads: 4096
+    fisher_block_size: 256
+    damp: 1.0e-8
+    num_recomputations: 1
